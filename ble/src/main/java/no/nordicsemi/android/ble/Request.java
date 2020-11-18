@@ -59,6 +59,7 @@ public abstract class Request {
 		CONNECT,
 		DISCONNECT,
 		CREATE_BOND,
+		ENSURE_BOND,
 		REMOVE_BOND,
 		WRITE,
 		NOTIFY,
@@ -210,6 +211,18 @@ public abstract class Request {
 	@NonNull
 	public static SimpleRequest createBond() {
 		return new SimpleRequest(Type.CREATE_BOND);
+	}
+
+	/**
+	 * Creates a new request that will ensure that the link is encrypted.
+	 * On Android 4.3-10 (and perhaps later as well, this needs to be tested when 11 is out) this
+	 * will remove the current bonding and create a new one.
+	 *
+	 * @return The new request.
+	 */
+	@NonNull
+	static SimpleRequest ensureBond() {
+		return new SimpleRequest(Type.ENSURE_BOND);
 	}
 
 	/**
@@ -1179,7 +1192,7 @@ public abstract class Request {
 		}
 	}
 
-	void notifySuccess(@NonNull final BluetoothDevice device) {
+	boolean notifySuccess(@NonNull final BluetoothDevice device) {
 		if (!finished) {
 			finished = true;
 
@@ -1189,7 +1202,9 @@ public abstract class Request {
 				if (successCallback != null)
 					successCallback.onRequestCompleted(device);
 			});
+			return true;
 		}
+		return false;
 	}
 
 	void notifyFail(@NonNull final BluetoothDevice device, final int status) {
